@@ -18,7 +18,7 @@ Bundle 'tpope/vim-fugitive'
 Bundle 'Lokaltog/vim-easymotion'
 Bundle 'rstacruz/sparkup', {'rtp': 'vim/'}
 Bundle 'tpope/vim-rails.git'
-Bundle 'guns/vim-clojure-static'
+"Bundle 'guns/vim-clojure-static'
 Bundle 'derekwyatt/vim-scala'
 Bundle 'tpope/vim-sensible'
 "Bundle 'ervandew/supertab'
