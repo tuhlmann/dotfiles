@@ -6,12 +6,12 @@ then
     git clone git@github.com:cask/cask.git ~/.cask
 fi
 
-if [[ $(grep "cask/bin" ~/.bash_profile) == "" ]]
+if [[ $(grep "cask/bin" ~/.bashrc) == "" ]]
 then
-    echo "Adding \$HOME/.cask/bin to \$PATH in ~/.bash_profile"
-    echo '' >> ~/.bash_profile
-    echo "# Added by ~/.emacs.d/install.sh" >> ~/.bash_profile
-    echo "export PATH=\$HOME/.cask/bin:\$PATH" >> ~/.bash_profile
+    echo "Adding \$HOME/.cask/bin to \$PATH in ~/.bashrc"
+    echo '' >> ~/.bashrc
+    echo "# Added by ~/.emacs.d/install.sh" >> ~/.bashrc
+    echo "export PATH=\$HOME/.cask/bin:\$PATH" >> ~/.bashrc
 fi
 
 export PATH=$HOME/.cask/bin:$PATH
@@ -19,7 +19,3 @@ export PATH=$HOME/.cask/bin:$PATH
 cd ~/.emacs.d
 cask install
 
-# For Python / ELPY
-# Prerequisite: Install Python as per:
-# http://docs.python-guide.org/en/latest/#getting-started
-#pip install --upgrade elpy flake8 rope jedi ipython

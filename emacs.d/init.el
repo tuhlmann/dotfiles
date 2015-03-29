@@ -1,11 +1,15 @@
+;;; init.el --- Summary
+;;; Commentary:
 (require 'cask "~/.cask/cask.el")
 
+;;; Code:
 (cask-initialize)
 (require 'pallet)
+(pallet-mode t)
 
 (add-to-list 'load-path "~/.emacs.d/custom")
 ;(load "00common-setup.el")
-;(load "01clojure.el")
+(load "01-smartparens.el")
 
 ;(setq backup-directory-alist '(("" . "~/.emacs.d/backups")))
 
@@ -33,7 +37,9 @@
 ;; Show cursor line
 (global-hl-line-mode 1)
 
-;(linum-mode 1) ; display line numbers in margin.
+(global-linum-mode t) ; display line numbers in margin.
+
+;(require 'linum-relative) ; relative line numbers
 
 (cua-mode 1) ; Standard Copy/Paste Keys
 
@@ -51,66 +57,79 @@
 
 (fset 'yes-or-no-p 'y-or-n-p) ; y or n instead or yes/no
 
-;; (setq tabbar-ruler-global-tabbar t) ; If you want tabbar
-;; (setq tabbar-ruler-global-ruler nil) ; if you want a global ruler
-;; (setq tabbar-ruler-popup-menu nil) ; If you want a popup menu.
-;; (setq tabbar-ruler-popup-toolbar nil) ; If you want a popup toolbar
-;; (setq tabbar-ruler-popup-scrollbar nil) ; If you want to only show the
-;; (require 'cl)                                        ; scroll bar when your mouse is moving.
-;; (require 'tabbar-ruler)
+(add-hook 'after-init-hook 'global-company-mode)
 
-(add-hook 'clojure-mode-hook 'cider-turn-on-eldoc-mode)
+(require 'undo-tree)
+(global-undo-tree-mode 1)
+
+(defalias 'redo 'undo-tree-redo)
+(global-set-key (kbd "C-z") 'undo) ; 【Ctrl+z】
+(global-set-key (kbd "C-S-z") 'redo) ; 【Ctrl+Shift+z】;  Mac style
+
+;; CIDER
+
+(add-hook 'cider-mode-hook #'eldoc-mode)
 ;;(setq nrepl-popup-stacktraces nil)
 (add-to-list 'same-window-buffer-names "<em>nrepl</em>")
+
+(require 'yasnippet)
+(yas-global-mode 1)
+
+(require 'clj-refactor)
+(add-hook 'clojure-mode-hook (lambda ()
+                               (clj-refactor-mode 1)
+                               ;; insert keybinding setup here
+                               (cljr-add-keybindings-with-prefix "C-c C-r")
+                               ))
 
 ;; Replace return key with newline-and-indent when in cider mode.
 ;(add-hook ‘cider-mode-hook ‘(lambda () (local-set-key (kbd “RET”) ‘newline-and-indent)))
 
 ;; General Auto-Complete
-(require 'auto-complete-config)
-(global-auto-complete-mode t)
-(setq ac-delay 0.0)
-(setq ac-quick-help-delay 0.5)
-(ac-config-default)
+;;(require 'auto-complete-config)
+;; (global-auto-complete-mode t)
+;; (setq ac-delay 0.0)
+;; (setq ac-quick-help-delay 0.5)
+;; (ac-config-default)
 
 ;; ac-nrepl (Auto-complete for the nREPL)
-(require 'ac-cider)
-(add-hook 'cider-mode-hook 'ac-cider-setup)
-(add-hook 'cider-repl-mode-hook 'ac-cider-setup)
-(add-to-list 'ac-modes 'cider-mode)
-(add-to-list 'ac-modes 'cider-repl-mode)
+;; (require 'ac-cider)
+;; (add-hook 'cider-mode-hook 'ac-cider-setup)
+;; (add-hook 'cider-repl-mode-hook 'ac-cider-setup)
+;; (add-to-list 'ac-modes 'cider-mode)
+;; (add-to-list 'ac-modes 'cider-repl-mode)
 
 ;; Poping-up contextual documentation
 (eval-after-load "cider"
   '(define-key cider-mode-map (kbd "C-c C-d") 'ac-cider-popup-doc))
 
-(add-hook 'clojure-mode-hook 'paredit-mode)
+;;(add-hook 'clojure-mode-hook 'paredit-mode)
 
 ;; require or autoload smartparens
 ;(add-hook 'clojure-mode-hook 'smartparens-strict-mode)
 
-;; Enter cider mode when entering the clojure major mode
+
+(setq nrepl-hide-special-buffers t)
 (add-hook 'clojure-mode-hook 'cider-mode)
+
+(add-hook 'cider-repl-mode-hook #'smartparens-strict-mode)
 
 (require 'rainbow-delimiters)
 (add-hook 'clojure-mode-hook 'rainbow-delimiters-mode)
-
-;; Show parenthesis mode
-(show-paren-mode 1)
 
 ;; rainbow delimiters
 ;(global-rainbow-delimiters-mode)
 
 (global-set-key [f8] 'other-frame)
-(global-set-key [f7] 'paredit-mode)
+;(global-set-key [f7] 'paredit-mode)
 (global-set-key [f9] 'cider-jack-in)
-(global-set-key [f11] 'speedbar)
+(global-set-key [f11] 'sr-speedbar-toggle)
 
 ;; scroll one line at a time (less "jumpy" than defaults)
-(setq mouse-wheel-scroll-amount '(1 ((shift) . 1))) ;; one line at a time
+(setq mouse-wheel-scroll-amount '(2 ((shift) . 2))) ;; one line at a time
 (setq mouse-wheel-progressive-speed nil) ;; don't accelerate scrolling
 (setq mouse-wheel-follow-mouse 't) ;; scroll window under mouse
-(setq scroll-step 1) ;; keyboard scroll one line at a time
+(setq scroll-step 2) ;; keyboard scroll one line at a time
 
 (global-set-key (kbd "M-x") 'smex)
 (global-set-key (kbd "M-X") 'smex-major-mode-commands)
@@ -141,6 +160,10 @@
 (projectile-global-mode)
 
 (require 'helm-config)
+(require 'helm-projectile)
+
+(setq projectile-completion-system 'helm)
+(helm-projectile-on)
 
 ;; Web Mode
 
@@ -166,55 +189,6 @@
 ;(add-hook 'after-init-hook #'global-flycheck-mode)
 (global-flycheck-mode 1)
 
-;; SCALA
-
-(require 'ensime)
-;; This step causes the ensime-mode to be started whenever
-;; scala-mode is started for a buffer. You may have to customize this step
-;; if you’re not using the standard scala mode.
-(add-hook 'scala-mode-hook 'ensime-scala-mode-hook)
-;; If necessary, make sure "sbt" and "scala" are in the PATH environment
-(setenv "PATH" (concat "/ewu/sbt:" (getenv "PATH")))
-;; (setenv "PATH" (concat "/path/to/scala/bin:" (getenv "PATH")))
-;; You can also customize `ensime-inf-get-project-root' and `ensime-inf-get-repl-cmd-line'
-;; Duplicate line
-
-(defun duplicate-line (arg)
-  "Duplicate current line, leaving point in lower line."
-  (interactive "*p")
-
-  ;; save the point for undo
-  (setq buffer-undo-list (cons (point) buffer-undo-list))
-
-  ;; local variables for start and end of line
-  (let ((bol (save-excursion (beginning-of-line) (point)))
-        eol)
-    (save-excursion
-
-      ;; don't use forward-line for this, because you would have
-      ;; to check whether you are at the end of the buffer
-      (end-of-line)
-      (setq eol (point))
-
-      ;; store the line and disable the recording of undo information
-      (let ((line (buffer-substring bol eol))
-            (buffer-undo-list t)
-            (count arg))
-        ;; insert the line arg times
-        (while (> count 0)
-          (newline)         ;; because there is no newline in 'line'
-          (insert line)
-          (setq count (1- count)))
-        )
-
-      ;; create the undo information
-      (setq buffer-undo-list (cons (cons eol (point)) buffer-undo-list)))
-    ) ; end-of-let
-
-  ;; put the point in the lowest line and return
-  (next-line arg))
-
-(global-set-key (kbd "C-c C-d") 'duplicate-line)
 
 ;; J2 Mode
 (add-to-list 'auto-mode-alist '("\\.json$" . js-mode))
@@ -239,6 +213,33 @@
 (add-to-list 'auto-mode-alist '("\\.markdown\\'" . markdown-mode))
 (add-to-list 'auto-mode-alist '("\\.md\\'" . gfm-mode))
 
+(require 'sr-speedbar)
+;(global-set-key (kbd "C-c b") 'sr-speedbar-toggle)
+
+(eval-after-load 'sr-speedbar
+  '(progn
+     (setq speedbar-hide-button-brackets-flag t
+           speedbar-show-unknown-files t
+           speedbar-smart-directory-expand-flag t
+           speedbar-directory-button-trim-method 'trim
+           speedbar-use-images nil
+           speedbar-indentation-width 2
+           speedbar-use-imenu-flag t
+           speedbar-file-unshown-regexp "flycheck-.*"
+           sr-speedbar-width 30
+           sr-speedbar-width-x 30
+           sr-speedbar-auto-refresh nil
+           sr-speedbar-skip-other-window-p t
+           sr-speedbar-right-side nil)
+     ))
+
+(defvar graphene-font-height
+  (face-attribute 'default :height)
+  "Default font height.")
+(defvar graphene-small-font-height
+  (floor (* .847 graphene-font-height))
+  "Relative size for 'small' fonts.")
+
 ;;; Customize
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -247,15 +248,52 @@
  ;; If there is more than one, they won't work right.
  '(ecb-options-version "2.40")
  '(js-indent-level 2)
+ '(markdown-command "/usr/bin/pandoc")
+ '(speedbar-obj-do-check nil)
+ '(speedbar-vc-do-check nil)
  '(sr-speedbar-default-width 30)
- '(markdown-command "/usr/bin/pandoc"))
+ '(sr-speedbar-max-width 30)
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(show-paren-match ((t (:stipple nil :background "dim gray" :foreground "#A1EFE4" :inverse-video nil :weight normal)))))
-
+ '(show-paren-match ((t (:stipple nil :background "dim gray" :foreground "#A1EFE4" :inverse-video nil :weight normal))))
+`(speedbar-directory-face
+   ((t (:foreground unspecified
+                    :background unspecified
+                    :inherit variable-pitch
+                    :weight bold
+                    :height ,graphene-small-font-height))))
+ `(speedbar-file-face
+   ((t (:foreground unspecified
+                    :inherit speedbar-directory-face
+                    :weight normal))))
+`(speedbar-selected-face
+   ((t (:background unspecified
+                    :foreground unspecified
+                    :height unspecified
+                    :inherit (speedbar-file-face font-lock-function-name-face)))))
+ `(speedbar-highlight-face
+   ((t (:background unspecified
+                    :inherit region))))
+ `(speedbar-button-face
+   ((t (:foreground unspecified
+                    :background unspecified
+                    :inherit file-name-shadow))))
+ `(speedbar-tag-face
+   ((t (:background unspecified
+                    :foreground unspecified
+                    :height unspecified
+                    :inherit speedbar-file-face))))
+ `(speedbar-separator-face
+   ((t (:foreground unspecified
+                    :background unspecified
+                    :inverse-video nil
+                    :inherit speedbar-directory-face
+                    :overline nil
+                    :weight bold))))
+))
 
 ;; Web Mode
 
@@ -279,52 +317,45 @@
 ;(add-hook 'after-init-hook #'global-flycheck-mode)
 (global-flycheck-mode 1)
 
-;; SCALA
-
-(require 'ensime)
-;; This step causes the ensime-mode to be started whenever
-;; scala-mode is started for a buffer. You may have to customize this step
-;; if you’re not using the standard scala mode.
-(add-hook 'scala-mode-hook 'ensime-scala-mode-hook)
-
 ;; Duplicate line
 
-(defun duplicate-line (arg)
-  "Duplicate current line, leaving point in lower line."
-  (interactive "*p")
+(defun duplicate-current-line-or-region (arg)
+  "Duplicates the current line or region ARG times.
+If there's no region, the current line will be duplicated.  However, if
+there's a region, all lines that region covers will be duplicated."
+  (interactive "p")
+  (let (beg end (origin (point)))
+    (if (and mark-active (> (point) (mark)))
+        (exchange-point-and-mark))
+    (setq beg (line-beginning-position))
+    (if mark-active
+        (exchange-point-and-mark))
+    (setq end (line-end-position))
+    (let ((region (buffer-substring-no-properties beg end)))
+      (dotimes (i arg)
+        (goto-char end)
+        (newline)
+        (insert region)
+        (setq end (point)))
+      (goto-char (+ origin (* (length region) arg) arg)))))
 
-  ;; save the point for undo
-  (setq buffer-undo-list (cons (point) buffer-undo-list))
+(global-set-key (kbd "C-c d") 'duplicate-current-line-or-region)
 
-  ;; local variables for start and end of line
-  (let ((bol (save-excursion (beginning-of-line) (point)))
-        eol)
-    (save-excursion
+;; Recalc window when speedbar opens
 
-      ;; don't use forward-line for this, because you would have
-      ;; to check whether you are at the end of the buffer
-      (end-of-line)
-      (setq eol (point))
+(when window-system
+  (defadvice sr-speedbar-open (after sr-speedbar-open-resize-frame activate)
+    (set-frame-width (selected-frame)
+                     (+ (frame-width) sr-speedbar-width)))
+  (ad-enable-advice 'sr-speedbar-open 'after 'sr-speedbar-open-resize-frame)
 
-      ;; store the line and disable the recording of undo information
-      (let ((line (buffer-substring bol eol))
-            (buffer-undo-list t)
-            (count arg))
-        ;; insert the line arg times
-        (while (> count 0)
-          (newline)         ;; because there is no newline in 'line'
-          (insert line)
-          (setq count (1- count)))
-        )
+  (defadvice sr-speedbar-close (after sr-speedbar-close-resize-frame activate)
+    ;(sr-speedbar-recalculate-width)
+    (set-frame-width (selected-frame)
+                     (- (frame-width) sr-speedbar-width)))
+  (ad-enable-advice 'sr-speedbar-close 'after 'sr-speedbar-close-resize-frame))
 
-      ;; create the undo information
-      (setq buffer-undo-list (cons (cons eol (point)) buffer-undo-list)))
-    ) ; end-of-let
 
-  ;; put the point in the lowest line and return
-  (next-line arg))
-
-(global-set-key (kbd "C-c C-d") 'duplicate-line)
 
 (provide 'init)
 
